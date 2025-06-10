@@ -123,5 +123,4 @@ Performa kedua model diukur menggunakan metrik yang sesuai dengan konteks masing
 -   **RMSE: 1.895**
 -   **MAE: 1.514**
 
-Dengan rentang rating 0.5-5.0, nilai-nilai ini menunjukkan bahwa performa model cukup masuk akal, dengan rata-rata kesalahan prediksi sekitar 1.5 poin rating.
-
+Dengan rentang rating 0.5-5.0, nilai-nilai ini menunjukkan bahwa performa model cukup masuk akal, dengan rata-rata kesalahan prediksi sekitar 1.5 poin rating
