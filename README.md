@@ -1,4 +1,4 @@
-# Laporan Proyek Machine Learning -Pretty N Simanjuntak
+# Laporan Proyek Machine Learning - Pretty N Simanjuntak
 
 ## Project Overview
 
@@ -31,6 +31,8 @@ Proyek ini mengangkat masalah tersebut dengan tujuan membangun sebuah sistem rek
 
 Dataset yang digunakan dalam proyek ini adalah **MovieLens 100k Dataset**, sebuah dataset populer untuk penelitian sistem rekomendasi yang dikumpulkan oleh GroupLens Research. Dataset ini berisi **100,836 rating** dari **610 pengguna** untuk **9,742 film**. Kondisi data secara umum sangat baik dan tidak memiliki nilai yang hilang.
 
+Dataset dapat diakses melalui tautan berikut: [https://grouplens.org/datasets/movielens/100k/](https://grouplens.org/datasets/movielens/100k/)
+
 #### Variabel-variabel pada Data
 
 -   **movies.csv**:
@@ -42,6 +44,15 @@ Dataset yang digunakan dalam proyek ini adalah **MovieLens 100k Dataset**, sebua
     -   `movieId`: ID film yang diberi rating.
     -   `rating`: Rating yang diberikan dengan skala 0.5 hingga 5.0.
     -   `timestamp`: Waktu saat rating diberikan.
+-   **links.csv**:
+    -   `movieId`: ID film yang sesuai dengan file `movies.csv` dan `ratings.csv`.
+    -   `imdbId`: ID film di platform IMDb.
+    -   `tmdbId`: ID film di platform The Movie Database (TMDB).
+-   **tags.csv**:
+    -   `userId`: ID pengguna yang memberikan tag.
+    -   `movieId`: ID film yang diberi tag.
+    -   `tag`: Tag atau label deskriptif yang diberikan oleh pengguna.
+    -   `timestamp`: Waktu saat tag diberikan.
 
 Dari *Exploratory Data Analysis* (EDA), ditemukan bahwa distribusi rating cenderung positif (banyak rating 3.0 dan 4.0) dan genre yang paling dominan adalah Drama, Komedi, dan Thriller.
 
@@ -54,8 +65,11 @@ Tahapan persiapan data sangat krusial untuk memastikan kualitas input bagi model
     -   **Alasan**: Pengguna dan film dengan interaksi yang sangat sedikit tidak memberikan informasi yang cukup signifikan untuk pemodelan dan dapat mengganggu performa model.
 
 2.  **Feature Engineering (untuk Content-Based)**: Kami mempersiapkan fitur `movies` untuk model berbasis konten.
-    -   **Proses**: Membuat kolom `clean_title` dengan judul film tanpa tahun rilis dan mengubah kolom `genres` menjadi beberapa kolom biner (0 atau 1) untuk setiap genre menggunakan `get_dummies()`.
-    -   **Alasan**: Judul yang bersih memudahkan pencarian, sementara *encoding* genre memungkinkan model untuk memprosesnya sebagai fitur numerik.
+    -   **Proses**:
+        -   Mengekstrak tahun rilis dari kolom `title` dan menyimpannya di kolom baru bernama `year`.
+        -   Membuat kolom `clean_title` dengan menghapus tahun rilis dari judul film.
+        -   Mengubah kolom `genres` menjadi beberapa kolom biner (0 atau 1) untuk setiap genre menggunakan `get_dummies()`.
+    -   **Alasan**: Mengekstrak tahun memungkinkan analisis berbasis waktu, judul yang bersih memudahkan pencarian, sementara *encoding* genre memungkinkan model untuk memprosesnya sebagai fitur numerik.
 
 3.  **Pembuatan User-Item Matrix (untuk Collaborative Filtering)**: Kami mentransformasi data rating menjadi format matriks.
     -   **Proses**: Membuat *pivot table* dari data rating di mana baris adalah `userId`, kolom adalah `movieId`, dan nilainya adalah `rating`. Nilai yang kosong (*NaN*) diisi dengan 0.
@@ -67,7 +81,7 @@ Tahapan persiapan data sangat krusial untuk memastikan kualitas input bagi model
 
 ## Modeling
 
- membangun dua model sistem rekomendasi yang berbeda untuk menyelesaikan permasalahan.
+Membangun dua model sistem rekomendasi yang berbeda untuk menyelesaikan permasalahan.
 
 ### 1. Content-Based Filtering
 
@@ -80,11 +94,11 @@ Model ini merekomendasikan film berdasarkan kemiripan konten, dalam hal ini adal
 
 
 Rekomendasi berdasarkan 'Toy Story':
-clean_title                                          genres  similarity_score
-1706                         Antz Adventure|Animation|Children|Comedy|Fantasy          1.000000
-2355                  Toy Story 2 Adventure|Animation|Children|Comedy|Fantasy          1.000000
-3000    Emperor's New Groove, The Adventure|Animation|Children|Comedy|Fantasy          1.000000
-...                           ...                                             ...               ...
+clean_title                                                 genres  similarity_score
+1706                         Antz        Adventure|Animation|Children|Comedy|Fantasy          1.000000
+2355                  Toy Story 2        Adventure|Animation|Children|Comedy|Fantasy          1.000000
+3000    Emperor's New Groove, The        Adventure|Animation|Children|Comedy|Fantasy          1.000000
+...                           ...                                                ...               ...
 
 
 ### 2. Collaborative Filtering
@@ -94,7 +108,7 @@ Model ini merekomendasikan film berdasarkan pola rating dari pengguna lain yang 
 -   **Kelebihan**: Mampu menemukan rekomendasi yang mengejutkan namun relevan (*serendipity*).
 -   **Kekurangan**: Mengalami *cold start problem* untuk pengguna baru dan kinerjanya dapat menurun jika data rating sangat jarang (*sparsity*).
 
-*Contoh Top-10 Recommendation untuk User 1:*
+*Contoh Top-10 Recommendation untuk User 1*:
 
 
 Rekomendasi untuk User 1:
@@ -110,17 +124,20 @@ movieId                                              title                      
 Performa kedua model diukur menggunakan metrik yang sesuai dengan konteks masing-masing pendekatan.
 
 #### Metrik dan Hasil Content-Based Filtering
+
 -   **Diversity (1.000)**: Mengukur seberapa beragam item yang direkomendasikan. Skor 1.0 menunjukkan bahwa model ini sangat baik dalam memberikan rekomendasi yang bervariasi.
 -   **Coverage (0.018)**: Mengukur persentase dari total item yang dapat direkomendasikan. Skor yang rendah menunjukkan bahwa model cenderung merekomendasikan sekelompok kecil item populer berdasarkan genre.
 
 #### Metrik dan Hasil Collaborative Filtering
+
 -   **Root Mean Squared Error (RMSE)**: Mengukur rata-rata magnitudo kesalahan dalam prediksi rating. Semakin kecil nilainya, semakin akurat prediksi model.
     -   Formula: $RMSE = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(y_i - \hat{y}_i)^2}$
 -   **Mean Absolute Error (MAE)**: Mirip dengan RMSE, namun kurang sensitif terhadap nilai ekstrem (*outlier*).
     -   Formula: $MAE = \frac{1}{N}\sum_{i=1}^{N}|y_i - \hat{y}_i|$
 
 **Hasil Prediksi Rating**:
+
 -   **RMSE: 1.895**
 -   **MAE: 1.514**
 
-Dengan rentang rating 0.5-5.0, nilai-nilai ini menunjukkan bahwa performa model cukup masuk akal, dengan rata-rata kesalahan prediksi sekitar 1.5 poin rating
+Dengan rentang rating 0.5-5.0, nilai-nilai ini menunjukkan bahwa performa model cukup masuk akal, dengan rata-rata kesalahan prediksi sekitar 1.5 poin rating.
